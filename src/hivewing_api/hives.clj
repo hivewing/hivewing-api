@@ -76,9 +76,6 @@
       :hive-access permissions
       ;:body-params [config-name :- String config-value :- String]
       :body [config-body (ring.swagger.schema/describe WorkerConfigurationPair "set configuration pairs")]
-      ;(def hive-uuid "4fb72242-6f49-11e4-b1f4-331a5545a721")
-      ;(def worker-uuid "4f7174d8-6f5b-11e4-8853-270db2849029")
-      ;(def config-name "asdf")
       (let [{config-name :name config-value :value} config-body ]
         (if (hivewing-core.worker/worker-in-hive? worker-uuid hive-uuid)
           ; If the worker is in the hive
