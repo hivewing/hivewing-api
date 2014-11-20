@@ -3,6 +3,7 @@
             [hivewing-api.hive-access]
             [hivewing-core.hive :as hive-core]
             [hivewing-core.worker :as worker-core]
+            [hivewing-core.worker-events :as worker-events-core]
             [hivewing-core.worker-config :as worker-config-core]
             [ring.util.http-response :refer :all]
             [ring.swagger.schema :refer [describe]]
@@ -27,6 +28,9 @@
                    :hive_uuid   java.util.UUID})
 
 (s/defschema WorkerConfigurationPair { :name String, :value String })
+
+(s/defschema WorkerEvent { :name String, :value String })
+
 
 ; The hives API routes
 (defroutes* hives-api-routes
@@ -72,7 +76,7 @@
     (POST* "/worker/:worker-uuid/config" []
       :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")
                     worker-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the worker")]
-      :summary "Get the high-level details about this worker"
+      :summary "Post and upate the worker-config values. These are sent to the worker"
       :hive-access permissions
       ;:body-params [config-name :- String config-value :- String]
       :body [config-body (ring.swagger.schema/describe WorkerConfigurationPair "set configuration pairs")]
@@ -86,6 +90,26 @@
                 (ok {:name config-name :value config-value}))
             ; invalid string
             (bad-request "Invalid key name"))
+          ; Worker was NOT in the hive
+          (not-found "Could not find the worker"))))
+
+    (POST* "/worker/:worker-uuid/events" []
+      :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")
+                    worker-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the worker")]
+      :summary "Push an event to the worker."
+      :hive-access permissions
+      :body [config-body (ring.swagger.schema/describe WorkerEvent "Send worker event")]
+
+      (let [{event-name :name event-value :value} config-body ]
+        (if (hivewing-core.worker/worker-in-hive? worker-uuid hive-uuid)
+          ; If the worker is in the hive
+          (if (and (hivewing-core.worker-events/worker-events-valid-name? event-name)
+                   (not (hivewing-core.worker-events/worker-events-system-name? event-name)))
+              (do
+                (hivewing-core.worker-events/worker-events-send worker-uuid event-name event-value)
+                (ok {:name event-name :value event-value}))
+            ; invalid string
+            (bad-request "Invalid event name"))
           ; Worker was NOT in the hive
           (not-found "Could not find the worker"))))
     ))
