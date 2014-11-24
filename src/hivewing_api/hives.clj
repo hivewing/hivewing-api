@@ -5,6 +5,7 @@
             [hivewing-core.worker :as worker-core]
             [hivewing-core.worker-events :as worker-events-core]
             [hivewing-core.worker-config :as worker-config-core]
+            [hivewing-core.worker-data :as worker-data-core]
             [ring.util.http-response :refer :all]
             [ring.swagger.schema :refer [describe]]
             [schema.core :as s]))
@@ -30,6 +31,10 @@
 (s/defschema WorkerConfigurationPair { :name String, :value String })
 
 (s/defschema WorkerEvent { :name String, :value String })
+
+(s/defschema WorkerDataEntry  { :value String , :at String})
+
+(s/defschema WorkerData  { :name String, :data [WorkerDataEntry] })
 
 
 ; The hives API routes
@@ -112,4 +117,42 @@
             (bad-request "Invalid event name"))
           ; Worker was NOT in the hive
           (not-found "Could not find the worker"))))
-    ))
+
+    (GET* "/worker/:worker-uuid/data" []
+      :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")
+                    worker-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the worker") ]
+      :summary "Get all the data for a worker"
+      :hive-access permissions
+      :return [WorkerData]
+
+      (if (hivewing-core.worker/worker-in-hive? worker-uuid hive-uuid)
+        (let [fields (hivewing-core.worker-data/worker-data-keys worker-uuid)]
+          (ok (map #(hash-map
+                       :name %1
+                       :data (hivewing-core.worker-data/worker-data-read worker-uuid %1)
+                      ) fields)
+
+               ))
+          ; invalid string
+        ; Worker was NOT in the hive
+        (not-found "Could not find the worker")
+      ))
+      ; Retrieves ALL the data fields as a hash.
+    (GET* "/worker/:worker-uuid/data/:data-name" []
+      :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")
+                    worker-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the worker")
+                    data-name :- (ring.swagger.schema/describe  String "Name of the data field to request")]
+      :summary "Get the data for a worker"
+      :hive-access permissions
+      :return [WorkerDataEntry]
+
+      (if (hivewing-core.worker/worker-in-hive? worker-uuid hive-uuid)
+        ; If the worker is in the hive
+        (if (and (hivewing-core.worker-data/worker-data-valid-name? data-name)
+                 (not (hivewing-core.worker-data/worker-data-system-name? data-name)))
+            (ok (hivewing-core.worker-data/worker-data-read worker-uuid data-name))
+          ; invalid string
+          (bad-request "Invalid event name"))
+        ; Worker was NOT in the hive
+        (not-found "Could not find the worker")))
+))
