@@ -6,7 +6,7 @@
                  [metosin/ring-swagger-ui "2.0.17"]
                  [environ "1.0.0"]
                  [ring-basic-authentication "1.0.5"]
-                 [hivewing-core "0.1.0"]]
+                 [hivewing-core "0.1.1"]]
 
   :ring {:handler hivewing-api.handler/app}
 
