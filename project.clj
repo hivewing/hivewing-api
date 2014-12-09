@@ -10,15 +10,18 @@
 
   :ring {:handler hivewing-api.handler/app}
 
+  :uberjar-name "hivewing-api_%s.jar"
+
   :repositories [["hivewing-core" {:url "s3p://clojars.hivewing.io/hivewing-core/releases"
                                    :username "AKIAJCSUM5ZFGI7DW5PA"
                                    :passphrase "UcO9VGAaGMRuJZbgZxCiz0XuHmB1J0uvzt7WIlJK"}]]
-  :uberjar-name "server.jar"
 
   :plugins [[lein-ring "0.8.13"]
             [s3-wagon-private "1.1.2"]
             [lein-environ "1.0.0"]
+            [lein-ring "0.8.13"]
             ]
+
   :profiles {:uberjar {:resource-paths ["swagger-ui"]}
              :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}})
 
