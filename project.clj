@@ -5,7 +5,7 @@
                  [metosin/ring-http-response "0.5.2"]
                  [metosin/ring-swagger-ui "2.0.17"]
                  [environ "1.0.0"]
-                 [hivewing-core "0.1.2"]]
+                 [hivewing-core "0.1.3-SNAPSHOT"]]
 
   :ring {:handler hivewing-api.handler/app}
 
