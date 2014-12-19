@@ -14,8 +14,4 @@
   (swaggered "hives"
     :description "Hives API"
     hives-api-routes)
-
-  (swaggered "workers"
-    :description "Workers API"
-    )
 )
