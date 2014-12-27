@@ -10,3 +10,4 @@ lib
 *.swo
 /checkouts/
 /profiles.clj
+/log/
