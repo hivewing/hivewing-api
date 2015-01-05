@@ -8,3 +8,6 @@ target
 .lein-plugins/
 lib
 *.swo
+/checkouts/
+/profiles.clj
+/log/
