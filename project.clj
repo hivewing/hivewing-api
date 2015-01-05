@@ -20,7 +20,8 @@
             [lein-environ "1.0.0"]
             ]
 
-  :profiles {:uberjar {:resource-paths ["swagger-ui"]}
+  :profiles {:uberjar {:aot :all
+                       :resource-paths ["swagger-ui"]}
              :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}}
-  :main ^:skip-aot hivewing-api.handler
+  :main hivewing-api.core
   )
