@@ -21,4 +21,6 @@
             ]
 
   :profiles {:uberjar {:resource-paths ["swagger-ui"]}
-             :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}})
+             :dev {:dependencies [[javax.servlet/servlet-api "2.5"]]}}
+  :main ^:skip-aot hivewing-api.handler
+  )

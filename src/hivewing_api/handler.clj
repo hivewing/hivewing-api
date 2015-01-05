@@ -2,7 +2,9 @@
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
             [hivewing-api.hives :refer :all]
-            [schema.core :as s]))
+            [ring.adapter.jetty :as jetty]
+            [schema.core :as s])
+  (:gen-class))
 
 (defapi app
   (swagger-ui)
@@ -15,3 +17,6 @@
     :description "Hives API"
     hives-api-routes)
 )
+
+(defn -main []
+  (jetty/run-jetty app {:port 3000}))
