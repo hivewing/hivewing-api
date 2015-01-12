@@ -22,6 +22,10 @@
 (s/defschema WorkerUUID {  :uuid java.util.UUID,
                            :updated_at (s/maybe java.sql.Timestamp),
                            :created_at java.sql.Timestamp })
+(s/defschema WorkerBootstrapData {
+                                  :uuid java.util.UUID,
+                                  :access_token java.util.UUID
+                                  })
 (s/defschema Worker {
                    :uuid     java.util.UUID,
                    :name        (s/maybe String),
@@ -61,32 +65,20 @@
       :return [WorkerUUID]
       (ok (hivewing-core.worker/worker-list hive-uuid :per-page per-page :page page)))
 
-    (GET* "/workers/:worker-uuid/activity" []
-      :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")
-                    worker-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the worker")]
-
-      :summary "Get activity stream for this worker."
+    (POST* "/workers" []
+      :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")]
+      :summary "Create a worker and put it in a hive"
+      :body-params [worker-name :- String]
       :hive-access permissions
-      (comment let [worker-change-listener (core-pubsub/subscribe-message
-                                     ; This is the worker config updates channel handler
-                                     (core-worker-config/worker-config-updates-channel worker-uuid)
-                                     (fn [changes data-channel]
-                                        ; When there are changes, we just ship them out to the
-                                        ; cilent as an update message
-                                        (send! channel {data-channel changes})))
+      :return WorkerBootstrapData
 
-                                     ; This is the channel that events are pushed to the workers
-                                     (core-worker-events/worker-events-channel worker-uuid)
-                                     (fn [events data-channel]
-                                        ; When there are events, we just ship them out to the
-                                        ; cilent as an event message
-                                        (send! channel {data-channel changes})
-                                     )
-
-                                     ]
-        ; When the socket closes, release the listener
-        (on-close channel (fn [status] (core-pubsub/unsubscribe worker-change-listener))))
-      (not-found "Not implemented yet!"))
+      (let [apiary-uuid (:apiary_uuid (hivewing-core.hive/hive-get hive-uuid))
+            result      (hivewing-core.worker/worker-create {:name worker-name
+                                                            :apiary_uuid apiary-uuid
+                                                            :hive_uuid hive-uuid})
+            ]
+        (ok {:uuid (:uuid result)
+             :access_token (:access_token result)})))
 
     (GET* "/worker/:worker-uuid" []
       :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")
