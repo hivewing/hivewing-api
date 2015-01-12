@@ -32,6 +32,8 @@
                    :updated_at  (s/maybe java.sql.Timestamp),
                    :created_at  java.sql.Timestamp,
                    :apiary_uuid java.util.UUID,
+                   :last_seen   (s/maybe java.sql.Timestamp),
+                   :connected   Boolean,
                    :hive_uuid   java.util.UUID})
 
 (s/defschema WorkerConfigurationPair { :name String, :value String })
