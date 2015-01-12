@@ -1,11 +1,12 @@
 (ns hivewing-api.hives
   (:require [compojure.api.sweet :refer :all]
             [hivewing-api.hive-access]
+            [taoensso.timbre :as logger]
             [hivewing-core.hive :as hive-core]
             [hivewing-core.worker :as worker-core]
             [hivewing-core.worker-events :as worker-events-core]
             [hivewing-core.worker-config :as worker-config-core]
-            [hivewing-core.worker-data :as worker-data-core]
+            [hivewing-core.hive-data :as hive-data]
             [hivewing-core.pubsub :as core-pubsub]
             [ring.util.http-response :refer :all]
             [ring.swagger.schema :refer [describe]]
@@ -33,9 +34,10 @@
 
 (s/defschema WorkerEvent { :name String, :value String })
 
-(s/defschema WorkerDataEntry  { :value String , :at String})
+(s/defschema DataEntry  { :value String , :at java.sql.Timestamp})
 
-(s/defschema WorkerData  { :name String, :data [WorkerDataEntry] })
+(s/defschema DataKey {:name String })
+(s/defschema DataKeySequence  { :name String, :data [DataEntry] })
 
 
 ; The hives API routes
@@ -74,12 +76,14 @@
                                         (send! channel {data-channel changes})))
 
                                      ; This is the channel that events are pushed to the workers
-                                     (core-worker-events/worker-data-channel worker-uuid)
+                                     (core-worker-events/worker-events-channel worker-uuid)
                                      (fn [events data-channel]
                                         ; When there are events, we just ship them out to the
                                         ; cilent as an event message
                                         (send! channel {data-channel changes})
-                                     )]
+                                     )
+
+                                     ]
         ; When the socket closes, release the listener
         (on-close channel (fn [status] (core-pubsub/unsubscribe worker-change-listener))))
       (not-found "Not implemented yet!"))
@@ -147,22 +151,16 @@
     (GET* "/worker/:worker-uuid/data" []
       :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")
                     worker-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the worker") ]
-      :summary "Get all the data for a worker"
+      :summary "Get all the data keys for a worker"
       :hive-access permissions
-      :return [WorkerData]
+      :return [DataKey]
 
       (if (hivewing-core.worker/worker-in-hive? worker-uuid hive-uuid)
-        (let [fields (hivewing-core.worker-data/worker-data-keys worker-uuid)]
-          (ok (map #(hash-map
-                       :name %1
-                       :data (hivewing-core.worker-data/worker-data-read worker-uuid %1)
-                      ) fields)
-
-               ))
+        (let [fields (hive-data/hive-data-get-keys hive-uuid worker-uuid)]
+          (ok (map #(hash-map :name %) fields)))
           ; invalid string
         ; Worker was NOT in the hive
-        (not-found "Could not find the worker")
-      ))
+        (not-found "Could not find the worker")))
 
       ; Retrieves ALL the data fields as a hash.
     (GET* "/worker/:worker-uuid/data/:data-name" []
@@ -171,15 +169,39 @@
                     data-name :- (ring.swagger.schema/describe  String "Name of the data field to request")]
       :summary "Get the data for a worker"
       :hive-access permissions
-      :return [WorkerDataEntry]
+      :return DataKeySequence
 
       (if (hivewing-core.worker/worker-in-hive? worker-uuid hive-uuid)
-        ; If the worker is in the hive
-        (if (and (hivewing-core.worker-data/worker-data-valid-name? data-name)
-                 (not (hivewing-core.worker-data/worker-data-system-name? data-name)))
-            (ok (hivewing-core.worker-data/worker-data-read worker-uuid data-name))
-          ; invalid string
-          (bad-request "Invalid event name"))
-        ; Worker was NOT in the hive
-        (not-found "Could not find the worker")))
-))
+        (let [values (doall (map
+                     #(hash-map :value (:data %)
+                                :at  (:at %))
+                     (hive-data/hive-data-read hive-uuid worker-uuid data-name))) ]
+          (ok {:name data-name
+               :data values}))
+        (not-found "Could not find the worker"))
+      )
+
+    (GET* "/hive/data" []
+      :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")]
+      :summary "Get all the data keys for a hive (hive-based data)"
+      :hive-access permissions
+      :return [DataKey]
+
+      (let [fields (hive-data/hive-data-get-keys hive-uuid)]
+        (ok (map #(hash-map :name %) fields))))
+
+      ; Retrieves data fields for the hive
+    (GET* "/hive/data/:data-name" []
+      :path-params [hive-uuid :- (ring.swagger.schema/describe java.util.UUID "Uuid of the hive")
+                    data-name :- (ring.swagger.schema/describe  String "Name of the data field to request")]
+      :summary "Get the data from the hive"
+      :hive-access permissions
+      :return DataKeySequence
+
+      (ok {:name data-name
+             :data (doall (map
+                     #(hash-map :value (:data %)
+                                :at  (:at %))
+                     (hive-data/hive-data-read hive-uuid nil data-name)))}))
+
+  ))
