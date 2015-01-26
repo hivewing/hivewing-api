@@ -1,7 +1,7 @@
 (defproject hivewing-api "0.1.0"
   :description "Hivewing.io API server"
   :dependencies [[org.clojure/clojure "1.7.0-alpha5"]
-                 [metosin/compojure-api "0.16.4"]
+                 [metosin/compojure-api "0.17.0"]
                  [metosin/ring-http-response "0.5.2"]
                  [metosin/ring-swagger-ui "2.0.17"]
                  [environ "1.0.0"]
