@@ -207,7 +207,6 @@
       :hive-access permissions
       :return schemas/HiveProcessingStage
       (let [stage-found (hive-data-stages/hive-data-stages-get hive-uuid stage-uuid) ]
-        (println "GOING... \n\n\n" stage-found)
         (hive-data-stages/hive-data-stages-delete (:uuid stage-found))
         (ok (schemas/processing-stage-to-external stage-found))))
 
