@@ -7,6 +7,17 @@
   <link href='css/screen.css' media='screen' rel='stylesheet' type='text/css'/>
   <link href='css/reset.css' media='print' rel='stylesheet' type='text/css'/>
   <link href='css/screen.css' media='print' rel='stylesheet' type='text/css'/>
+  <link href="http://fonts.googleapis.com/css?family=Dosis:300,400|Roboto+Slab:300,100,400"
+        rel="stylesheet" type="text/css"/>
+  <link rel="stylesheet"
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css"/>
+
+  <link rel="stylesheet"
+        type="text/css"
+        href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"/>
+
+  <link href='css/hivewing.css' media='screen,print' rel='stylesheet' type='text/css'/>
+
   <script type="text/javascript" src="lib/shred.bundle.js"></script>
   <script src='lib/jquery-1.8.0.min.js' type='text/javascript'></script>
   <script src='lib/jquery.slideto.min.js' type='text/javascript'></script>
@@ -44,20 +55,45 @@
   </script>
 </head>
 
-<body class="swagger-section">
-<div id='header'>
-  <div class="swagger-ui-wrap">
-    <form id='api_selector'>
-      <div class='input'>
-        <input style='width: 400px; font-size: 16px; padding: 5px; border: 3px solid black;'
-               id='input_HiveKey' class='input' onchange="window.add_hive_access_key()"
-               onkeyup="window.add_hive_access_key()" placeholder="Hive Access Key"/>
+<body class="swagger-section landing-page">
+  <nav class="navbar navbar-custom navbar-fixed-top top-nav-collapse"
+    role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <a class="navbar-brand " href="#page_top">
+          <span>Hivewing.</span>
+          <span class="light">io</span>
+          <div class="hexagon-xs">&nbsp;</div>
+        </a>
       </div>
-    </form>
-  </div>
-</div>
+      <div class="collapse navbar-collapse navbar-right navbar-main-collapse">
+        <ul class="nav navbar-nav">
+          <!-- Hidden li included to remove active class from about link when scrolled up past about section -->
+          <li class="hidden"><a href="#page_top"></a></li>
+          <li><a class="page-scroll" href="http://www.hivewing.io">Go To Hivewing.io</a></li>
+          <li>
+            <form class='navbar-form' id='api_selector'>
+              <div class='input-group'>
+                <input  id='input_HiveKey' class='form-control ' onchange="window.add_hive_access_key()"
+                       onkeyup="window.add_hive_access_key()" placeholder="Hive Access Key"/>
+              </div>
+            </form>
+          </li>
 
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div style='height: 80px'> &nbsp; </div>
 <div id="message-bar" class="swagger-ui-wrap">&nbsp;</div>
-<div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+  <div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+<footer
+  style="border-radius: 0; font-size: 20px; background: #00a67C; color: #f9f9f9; padding: 50px 0;"
+  class="navbar navbar-fixe-bottom navbar-collapse">
+  <div class="footer-copyright">
+    <div class="container">&copy; 2015 Copyright Hivewing.io</div>
+  </div>
+</footer>
 </body>
 </html>

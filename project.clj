@@ -7,7 +7,8 @@
                  [environ "1.0.0"]
                  [hivewing-core "0.1.3-SNAPSHOT"]]
 
-  :ring {:handler hivewing-api.handler/app}
+  :ring {:handler hivewing-api.handler/app
+         :port 5000}
 
   :uberjar-name "hivewing-api-%s.uber.jar"
 
