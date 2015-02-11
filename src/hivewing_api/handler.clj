@@ -3,6 +3,7 @@
             [ring.util.http-response :refer :all]
             [compojure.route :as route]
             [hivewing-api.hives :refer :all]
+            [hivewing-api.public-keys :refer :all]
             [hivewing-api.schemas :as schemas]
             [hivewing-core.hive-data-stages :as hive-data-stages]
             [ring.adapter.jetty :as jetty]
@@ -19,4 +20,8 @@
     :description "Hives API"
     (route/resources "/")
     hives-api-routes)
+
+  (swaggered "keys"
+             :description "PublicKeys API"
+             public-keys-routes)
 )

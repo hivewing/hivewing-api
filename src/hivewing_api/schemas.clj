@@ -30,6 +30,9 @@
 
 (s/defschema WorkerEvent { :name String, :value String })
 
+(s/defschema WorkerPublicKey {:worker_uuid java.util.UUID,
+                              :updated_at  (s/maybe java.sql.Timestamp),
+                              :public_key String})
 (s/defschema DataEntry  { :value String , :at java.sql.Timestamp})
 
 (s/defschema DataKey {:name String })
